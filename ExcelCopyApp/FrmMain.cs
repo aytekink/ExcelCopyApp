@@ -1,7 +1,9 @@
 ﻿using System;
+//using System.Data;
+using System.Data.OleDb;
 using System.IO;
 using System.Windows.Forms;
-using ExcelApp = Microsoft.Office.Interop.Excel;
+//using ExcelApp = Microsoft.Office.Interop.Excel;
 
 namespace ExcelCopyApp
 {
@@ -30,8 +32,8 @@ namespace ExcelCopyApp
 
         private void btnExcel_Click(object sender, EventArgs e)
         {
-            openFileDialog_Excel.Title = "Lütfen Dosya Seçiniz";
-            openFileDialog_Excel.Filter = "Excel Dosyası |*.xlsx| Excel Dosyası|*.xls";
+            openFileDialog_Excel.Title = "Lütfen Excel Dosyayı Seçiniz";
+            //openFileDialog_Excel.Filter = "Excel (2007-2010) Dosyası |*.xlsx|Excel (2003) Dosyası|*.xls";
             openFileDialog_Excel.FilterIndex = 1;
             openFileDialog_Excel.Multiselect = true;
             if (openFileDialog_Excel.ShowDialog() == DialogResult.OK)
@@ -41,21 +43,36 @@ namespace ExcelCopyApp
                 lbExcel.Items.Clear();
                 lbHata.Items.Clear();
 
-                txtExcel.Text = openFileDialog_Excel.FileName;
-
-                ExcelApp.Application excelApp = new ExcelApp.Application();
-                ExcelApp.Workbook excelBook = excelApp.Workbooks.Open(openFileDialog_Excel.FileName);
-                ExcelApp._Worksheet excelSheet = excelBook.Sheets[1];
-                ExcelApp.Range excelRange = excelSheet.UsedRange;
-
-                for (int i = 2; i <= excelRange.Rows.Count; i++)
+                try
                 {
-                    lbExcel.Items.Add(excelRange.Cells[i, 2].Value); // .ToString());
+                    string dosya_adres = openFileDialog_Excel.FileName; OleDbConnection con = new OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + dosya_adres + ";Extended Properties=Excel 12.0");
+                    con.Open();
+                    string sql = "SELECT * FROM [Sayfa1$B1:B50000] ";
+
+                    OleDbCommand veri = new OleDbCommand(sql, con); OleDbDataReader dr = null;
+                    dr = veri.ExecuteReader();
+
+                    while (dr.Read())
+                    {
+                        if (dr[0].ToString() != "")
+                        {
+                            lbExcel.Items.Add(dr[0].ToString());
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    veri.Dispose();
+                    dr.Close();
+                    con.Close();
+                }
+                catch
+                {
+                    MessageBox.Show("Excel Dosyasında Sayfa1 bulunamadı.", "Hata");
                 }
 
-
-                excelApp.Quit();
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
                 if (lbExcel.Items.Count > 0)
                 {
                     lblKayitSayisi.Text = lbExcel.Items.Count.ToString();
@@ -69,6 +86,47 @@ namespace ExcelCopyApp
 
                 Cursor.Current = Cursors.Default;
             }
+
+
+            //openFileDialog_Excel.Title = "Lütfen Dosya Seçiniz";
+            //openFileDialog_Excel.Filter = "Excel Dosyası |*.xlsx| Excel Dosyası|*.xls";
+            //openFileDialog_Excel.FilterIndex = 1;
+            //openFileDialog_Excel.Multiselect = true;
+            //if (openFileDialog_Excel.ShowDialog() == DialogResult.OK)
+            //{
+            //    Cursor.Current = Cursors.WaitCursor;
+
+            //    lbExcel.Items.Clear();
+            //    lbHata.Items.Clear();
+
+            //    txtExcel.Text = openFileDialog_Excel.FileName;
+
+            //    ExcelApp.Application excelApp = new ExcelApp.Application();
+            //    ExcelApp.Workbook excelBook = excelApp.Workbooks.Open(openFileDialog_Excel.FileName);
+            //    ExcelApp._Worksheet excelSheet = excelBook.Sheets[1];
+            //    ExcelApp.Range excelRange = excelSheet.UsedRange;
+
+            //    for (int i = 2; i <= excelRange.Rows.Count; i++)
+            //    {
+            //        lbExcel.Items.Add(excelRange.Cells[i, 2].Value); // .ToString());
+            //    }
+
+
+            //    excelApp.Quit();
+            //    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+            //    if (lbExcel.Items.Count > 0)
+            //    {
+            //        lblKayitSayisi.Text = lbExcel.Items.Count.ToString();
+            //        btnKopyala.Enabled = true;
+            //    }
+            //    else
+            //    {
+            //        lblKayitSayisi.Text = lbExcel.Items.Count.ToString();
+            //        btnKopyala.Enabled = false;
+            //    }
+
+            //    Cursor.Current = Cursors.Default;
+            //}
         }
 
         private void btnKopyala_Click(object sender, EventArgs e)
@@ -132,9 +190,5 @@ namespace ExcelCopyApp
             MessageBox.Show("Liste Kaydedilmiştir.", "Sonuç");
         }
 
-        private void FrmMain_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }

@@ -223,8 +223,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtKaynak);
             this.Name = "FrmMain";
-            this.Text = "ESC | Dosya Kopyalama";
-            this.Load += new System.EventHandler(this.FrmMain_Load);
+            this.Text = "ESC | Dosya Kopyalama";            
             this.ResumeLayout(false);
             this.PerformLayout();
 
